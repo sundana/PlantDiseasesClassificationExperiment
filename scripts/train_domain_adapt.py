@@ -34,7 +34,7 @@ from src.models.mobilenetv3 import MobileNetV3_Large, MobileNetV3_Small
 from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2
 from src.config import (
     DATA_DIR, CHECKPOINT_DIR, PLANTVILLAGE_DIR, PLANTDOC_DIR,
-    DOMAIN_ADAPT_DIR, DEFAULT_SEED, set_seed,
+    DOMAIN_ADAPT_DIR, DA_CHECKPOINT_DIR, DEFAULT_SEED, set_seed,
 )
 from src.utils import EarlyStopping
 
@@ -256,6 +256,13 @@ def main():
                         help="Path to PlantVillage pretrained checkpoint for finetune/dann")
     args = parser.parse_args()
 
+    # Resolve pretrained checkpoint path: accept filename only or relative path
+    if args.pretrained_ckpt:
+        if not os.path.isabs(args.pretrained_ckpt):
+            args.pretrained_ckpt = os.path.join(CHECKPOINT_DIR, args.pretrained_ckpt)
+        if not args.pretrained_ckpt.endswith('.pth'):
+            args.pretrained_ckpt += '.pth'
+
     set_seed(args.seed)
 
     if args.device == "auto":
@@ -341,12 +348,12 @@ def main():
         engine.train(
             model, pd_train_loader, pd_val_loader, optimizer, loss_fn,
             epochs=args.epochs, device=device, patience=10, early_stopping=True,
-            checkpoint_dir=CHECKPOINT_DIR, enable_live_plot=False,
+            checkpoint_dir=DA_CHECKPOINT_DIR, enable_live_plot=False,
         )
 
         # Evaluate on PlantDoc test
         from src.utils import evaluate_model
-        best_ckpt = os.path.join(CHECKPOINT_DIR, ckpt_name)
+        best_ckpt = os.path.join(DA_CHECKPOINT_DIR, ckpt_name)
         if os.path.exists(best_ckpt):
             model.load_state_dict(torch.load(best_ckpt, map_location=device)["model_state_dict"])
         evaluate_model(model, loss_fn, pd_test_loader, pd_class_names, device,
@@ -385,7 +392,7 @@ def main():
         optimizer = torch.optim.Adam(dann_model.parameters(), lr=args.lr)
         class_criterion = nn.CrossEntropyLoss()
 
-        ckpt_path = os.path.join(CHECKPOINT_DIR, f"{args.model}_dann_best.pth")
+        ckpt_path = os.path.join(DA_CHECKPOINT_DIR, f"{args.model}_dann_best.pth")
 
         best_val_acc = 0.0
         for epoch in range(args.epochs):

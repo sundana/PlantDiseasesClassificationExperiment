@@ -23,6 +23,7 @@ CONFUSION_MATRIX_DIR = os.path.join(RESULTS_DIR, "confusion_matrix")
 
 # Domain Adaptation / Cross-Validation Directories
 DOMAIN_ADAPT_DIR = os.path.join(RESULTS_DIR, "domain_adaptation")
+DA_CHECKPOINT_DIR = os.path.join(RESULTS_DIR, "checkpoints_da")
 CROSSVAL_DIR = os.path.join(RESULTS_DIR, "cross_validation")
 PLANTDOC_SPLIT_DIR = os.path.join(DATA_DIR, "plantdoc_split")
 
@@ -32,7 +33,7 @@ DEFAULT_SEED = 42
 # Create directories if they don't exist
 for d in [RESULTS_DIR, CHECKPOINT_DIR, TRAINING_LOG_DIR, PLOT_DIR, CSV_DIR,
           EVAL_DIR, COMPLEXITY_DIR, CONFUSION_MATRIX_DIR,
-          DOMAIN_ADAPT_DIR, CROSSVAL_DIR]:
+          DOMAIN_ADAPT_DIR, CROSSVAL_DIR, DA_CHECKPOINT_DIR]:
     os.makedirs(d, exist_ok=True)
 
 
