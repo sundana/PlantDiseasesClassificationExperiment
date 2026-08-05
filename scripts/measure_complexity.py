@@ -60,7 +60,7 @@ def calculate_flops(models: list[nn.Module]) -> pd.DataFrame:
 
 if __name__ == "__main__":
     from src.models import mobilenetv3
-    from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2
+    from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2, get_efficientnet_b0
     from functools import partial
     
     # Register model
@@ -69,16 +69,19 @@ if __name__ == "__main__":
         partial(mobilenetv3.MobileNetV3_Large, attention_type='none'),
         partial(mobilenetv3.MobileNetV3_Large, attention_type='se', reduction_ratio=16),
         partial(mobilenetv3.MobileNetV3_Large, attention_type='se', reduction_ratio=32),
+        partial(mobilenetv3.MobileNetV3_Large, attention_type='cbam', reduction_ratio=4),
         partial(mobilenetv3.MobileNetV3_Large, attention_type='cbam', reduction_ratio=16),
         partial(mobilenetv3.MobileNetV3_Large, attention_type='cbam', reduction_ratio=32),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='se', reduction_ratio=4),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='none'),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='se', reduction_ratio=16),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='se', reduction_ratio=32),
+        partial(mobilenetv3.MobileNetV3_Small, attention_type='cbam', reduction_ratio=4),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='cbam', reduction_ratio=16),
         partial(mobilenetv3.MobileNetV3_Small, attention_type='cbam', reduction_ratio=32),
         get_mobilenet_v2,
         get_shufflenet_v2,
+        get_efficientnet_b0,
     ]
 
     df = calculate_flops(models)

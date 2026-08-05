@@ -19,7 +19,7 @@ from src.config import DATA_DIR, CHECKPOINT_DIR, PLANTVILLAGE_DIR, PLANTDOC_DIR,
 from scripts.validate_plantdoc import PlantDocMappedDataset, PLANTDOC_PV_MAPPING, PV_CLASSES
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cpu")
     print(f"Device: {device}")
 
     # 1. Get actual class order from PlantVillage ImageFolder
@@ -100,7 +100,7 @@ def main():
             print(f"  Checkpoint not found: {ckpt_path}")
             continue
 
-        state_dict = torch.load(ckpt_path, map_location=device)
+        state_dict = torch.load(ckpt_path, map_location=device, weights_only=False)
         if "model_state_dict" in state_dict:
             state_dict = state_dict["model_state_dict"]
 
@@ -202,7 +202,7 @@ def main():
     for ckpt_name in ["MobileNetV3_Large_CBAM_r16_epoch_22", "MobileNetV3_Large_SE_epoch_39"]:
         ckpt_path = os.path.join(CHECKPOINT_DIR, f"{ckpt_name}.pth")
         if os.path.exists(ckpt_path):
-            sd = torch.load(ckpt_path, map_location='cpu')
+            sd = torch.load(ckpt_path, map_location='cpu', weights_only=False)
             if "model_state_dict" in sd:
                 sd = sd["model_state_dict"]
             classifier_key = None

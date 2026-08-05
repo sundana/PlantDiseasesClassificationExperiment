@@ -30,7 +30,7 @@ from tqdm import tqdm
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.models.mobilenetv3 import MobileNetV3_Large, MobileNetV3_Small
-from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2
+from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2, get_efficientnet_b0
 from src.config import DATA_DIR, CHECKPOINT_DIR, RESULTS_DIR, PLANTDOC_DIR
 from src.utils import evaluate_model
 
@@ -159,12 +159,15 @@ def main():
         "mobilenetv3_large_se_r16": partial(MobileNetV3_Large, attention_type='se', reduction_ratio=16),
         "mobilenetv3_small_se_r32": partial(MobileNetV3_Small, attention_type='se', reduction_ratio=32),
         "mobilenetv3_large_se_r32": partial(MobileNetV3_Large, attention_type='se', reduction_ratio=32),
+        "proposed_large_4": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=4),
         "proposed_large_16": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=16),
         "proposed_large_32": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=32),
+        "proposed_small_4": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=4),
         "proposed_small_16": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=16),
         "proposed_small_32": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=32),
         "mobilenetv2": get_mobilenet_v2,
         "shufflenetv2": get_shufflenet_v2,
+        "efficientnet_b0": get_efficientnet_b0,
     }
 
     # Determine which models to evaluate

@@ -20,8 +20,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 from src import data_setup, engine
 from src.models.mobilenetv3 import MobileNetV3_Large, MobileNetV3_Small
-from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2
-from src.config import DATA_DIR, CHECKPOINT_DIR, PLANTVILLAGE_DIR
+from src.models.baselines import get_mobilenet_v2, get_shufflenet_v2, get_efficientnet_b0
+from src.config import DATA_DIR, CHECKPOINT_DIR, PLANTVILLAGE_DIR, DEFAULT_SEED, set_seed
 from torchvision import transforms
 from functools import partial
 
@@ -34,7 +34,9 @@ def start_training(
     data_dir: str = PLANTVILLAGE_DIR,
     device_name: str = "auto",
     no_plot: bool = False,
+    seed: int = DEFAULT_SEED,
 ):
+    set_seed(seed)
     # Setup target device
     if device_name == "auto":
         if torch.cuda.is_available():
@@ -68,7 +70,9 @@ def start_training(
             data_path=data_dir, 
             train_transform=train_transform,
             test_transform=test_transform,
-            batch_size=batch_size
+            batch_size=batch_size,
+            seed=seed,
+            stratified=True,
         )
     )
 
@@ -82,12 +86,15 @@ def start_training(
         "mobilenetv3_large_se_r16": partial(MobileNetV3_Large, attention_type='se', reduction_ratio=16),
         "mobilenetv3_small_se_r32": partial(MobileNetV3_Small, attention_type='se', reduction_ratio=32),
         "mobilenetv3_large_se_r32": partial(MobileNetV3_Large, attention_type='se', reduction_ratio=32),
+        "proposed_large_4": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=4),
         "proposed_large_16": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=16),
         "proposed_large_32": partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=32),
+        "proposed_small_4": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=4),
         "proposed_small_16": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=16),
         "proposed_small_32": partial(MobileNetV3_Small, attention_type='cbam', reduction_ratio=32),
         "mobilenetv2": get_mobilenet_v2,
         "shufflenetv2": get_shufflenet_v2,
+        "efficientnet_b0": get_efficientnet_b0,
     }
 
     # Get model class from map or default to MobileNetV3_Large (SE)
@@ -145,12 +152,15 @@ if __name__ == "__main__":
             "mobilenetv3_large_se_r16",
             "mobilenetv3_small_se_r32",
             "mobilenetv3_large_se_r32",
+            "proposed_large_4",
             "proposed_large_16",
             "proposed_large_32",
+            "proposed_small_4",
             "proposed_small_16",
             "proposed_small_32",
             "mobilenetv2",
             "shufflenetv2",
+            "efficientnet_b0",
         ],
         help="name of the model",
     )
@@ -162,6 +172,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--device", default="auto", help="device to use (cuda/cpu/auto)"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=DEFAULT_SEED, help="random seed"
     )
     parser.add_argument(
         "--plot", action="store_true", help="enable real-time plotting"
@@ -178,4 +191,5 @@ if __name__ == "__main__":
         data_dir=data_dir,
         device_name=device_name,
         no_plot=no_plot,
+        seed=args.seed,
     )
