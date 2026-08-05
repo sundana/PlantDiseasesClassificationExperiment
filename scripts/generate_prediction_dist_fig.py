@@ -1,10 +1,9 @@
-"""Generate plantdoc_prediction_distribution.png for the paper."""
-import sys
-import os
+"""Generate plantdoc_prediction_distribution.png — v3.
+Fixes: unified x-scale 0-40%, proper spacing, no text collision, clean titles."""
+import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import torch
-import numpy as np
+import torch, numpy as np
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from functools import partial
@@ -12,6 +11,7 @@ from collections import Counter
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 from src.models.mobilenetv3 import MobileNetV3_Large, MobileNetV3_Small
 from src.config import CHECKPOINT_DIR, PLANTDOC_DIR, ROOT_DIR
@@ -19,39 +19,27 @@ from scripts.validate_plantdoc import PlantDocMappedDataset, PLANTDOC_PV_MAPPING
 
 PAPER_DIR = os.path.join(os.path.dirname(ROOT_DIR), "paper")
 
-MODELS_CONFIG = [
-    ("Large SE r=4", partial(MobileNetV3_Large, attention_type='se'),
-     "MobileNetV3_Large_SE_epoch_39", "#2196F3"),
-    ("Large CBAM r=16", partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=16),
-     "MobileNetV3_Large_CBAM_r16_epoch_22", "#FF9800"),
-    ("Small SE r=4", partial(MobileNetV3_Small, attention_type='se'),
-     "MobileNetV3_Small_SE_epoch_19", "#4CAF50"),
+MODELS = [
+    ("Large SE (r=4)", partial(MobileNetV3_Large, attention_type='se'),
+     "MobileNetV3_Large_SE_epoch_39"),
+    ("Large CBAM (r=16)", partial(MobileNetV3_Large, attention_type='cbam', reduction_ratio=16),
+     "MobileNetV3_Large_CBAM_r16_epoch_22"),
+    ("Small SE (r=4)", partial(MobileNetV3_Small, attention_type='se'),
+     "MobileNetV3_Small_SE_epoch_19"),
 ]
 
-BACKGROUND_CLASS_IDX = 4
-BACKGROUND_CLASS_NAME = "Background\nw/o leaves"
-UNMAPPED_INDICES = {1, 4, 6, 9, 10, 12, 13, 17, 25}
+BG_IDX = 4
+UNMAPPED = {1, 4, 6, 9, 10, 12, 13, 17, 25}
+CLR_MAPPED   = "#2196F3"
+CLR_UNMAPPED = "#BDBDBD"
+CLR_BG       = "#E53935"
 
-def shorten_class_name(name, max_len=14):
-    parts = name.split("___")
-    if len(parts) == 2:
-        short = parts[1].replace("_", " ")[:max_len]
-    else:
-        short = name.replace("_", " ")[:max_len]
-    return short
 
-def collect_predictions(model, dataloader, device):
-    model.eval()
-    all_preds = []
-    all_labels = []
-    with torch.inference_mode():
-        for images, labels in dataloader:
-            images = images.to(device)
-            outputs = model(images)
-            preds = outputs.argmax(dim=1).cpu().numpy()
-            all_preds.extend(preds.tolist())
-            all_labels.extend(labels.numpy().tolist())
-    return np.array(all_preds), np.array(all_labels)
+def shorten(name, n=16):
+    p = name.split("___", 1)
+    s = p[1].replace("_", " ") if len(p) == 2 else name.replace("_", " ")
+    return s[:n]
+
 
 def main():
     device = torch.device("cpu")
@@ -64,126 +52,93 @@ def main():
     ])
 
     dataset = PlantDocMappedDataset(
-        root_dir=PLANTDOC_DIR,
-        mapping=PLANTDOC_PV_MAPPING,
-        pv_classes=PV_CLASSES,
-        transform=transform,
+        root_dir=PLANTDOC_DIR, mapping=PLANTDOC_PV_MAPPING,
+        pv_classes=PV_CLASSES, transform=transform,
     )
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False, num_workers=0)
-    print(f"Dataset size: {len(dataset)}")
+    mapped_ix = {PV_CLASSES.index(v) for v in PLANTDOC_PV_MAPPING.values()}
 
     results = []
-    for label, model_fn, ckpt_name, color in MODELS_CONFIG:
-        print(f"\nLoading {label} from {ckpt_name}...")
+    for label, model_fn, ckpt_name in MODELS:
+        print(f"Loading {label} ...")
         model = model_fn(num_classes=len(PV_CLASSES)).to(device)
         ckpt_path = os.path.join(CHECKPOINT_DIR, f"{ckpt_name}.pth")
-        state_dict = torch.load(ckpt_path, map_location=device, weights_only=False)
-        if "model_state_dict" in state_dict:
-            state_dict = state_dict["model_state_dict"]
+        sd = torch.load(ckpt_path, map_location=device, weights_only=False)
+        if "model_state_dict" in sd:
+            sd = sd["model_state_dict"]
+        nsd = {}
+        for k, v in sd.items():
+            if ".se.se." in k:           k = k.replace(".se.se.", ".attention_module.se.")
+            if ".module.channel_attention.fc1." in k: k = k.replace(".module.channel_attention.fc1.", ".attention_module.channel_attention.se.0.")
+            if ".module.channel_attention.fc2." in k: k = k.replace(".module.channel_attention.fc2.", ".attention_module.channel_attention.se.2.")
+            if ".module.spatial_attention.conv." in k: k = k.replace(".module.spatial_attention.conv.", ".attention_module.spatial_attention.conv.")
+            if "bneck" in k and ".module." in k:  k = k.replace(".module.", ".attention_module.")
+            nsd[k] = v
+        model.load_state_dict(nsd, strict=False)
 
-        new_state_dict = {}
-        for k, v in state_dict.items():
-            if ".se.se." in k:
-                k = k.replace(".se.se.", ".attention_module.se.")
-            if ".module.channel_attention.fc1." in k:
-                k = k.replace(".module.channel_attention.fc1.", ".attention_module.channel_attention.se.0.")
-            if ".module.channel_attention.fc2." in k:
-                k = k.replace(".module.channel_attention.fc2.", ".attention_module.channel_attention.se.2.")
-            if ".module.spatial_attention.conv." in k:
-                k = k.replace(".module.spatial_attention.conv.", ".attention_module.spatial_attention.conv.")
-            if "bneck" in k and ".module." in k:
-                k = k.replace(".module.", ".attention_module.")
-            new_state_dict[k] = v
+        all_preds, all_labels = [], []
+        model.eval()
+        with torch.inference_mode():
+            for imgs, lbls in dataloader:
+                out = model(imgs.to(device))
+                all_preds.extend(out.argmax(dim=1).cpu().tolist())
+                all_labels.extend(lbls.tolist())
+        preds = np.array(all_preds); labels = np.array(all_labels)
+        acc = (preds == labels).mean() * 100
+        ctr = Counter(preds.tolist())
+        unmapped_pct = sum(1 for p in preds if p not in mapped_ix) / len(preds) * 100
+        bg_pct = sum(1 for p in preds if p == BG_IDX) / len(preds) * 100
 
-        model.load_state_dict(new_state_dict, strict=False)
-
-        all_preds, all_labels = collect_predictions(model, dataloader, device)
-        acc = (all_preds == all_labels).mean() * 100
-
-        mapped_indices = {PV_CLASSES.index(pv_class) for pv_class in PLANTDOC_PV_MAPPING.values()}
-        unmapped_preds = sum(1 for p in all_preds if p not in mapped_indices)
-        bg_preds = sum(1 for p in all_preds if p == BACKGROUND_CLASS_IDX)
-
-        print(f"  Accuracy: {acc:.2f}%, Unmapped: {unmapped_preds/len(all_preds)*100:.1f}%, "
-              f"Background: {bg_preds/len(all_preds)*100:.1f}%")
-
+        items = sorted(ctr.items(), key=lambda x: -x[1])[:8]
         results.append({
-            "label": label,
-            "color": color,
-            "preds": all_preds,
-            "acc": acc,
-            "unmapped_pct": unmapped_preds / len(all_preds) * 100,
-            "bg_pct": bg_preds / len(all_preds) * 100,
+            "label": label, "acc": acc, "unmapped_pct": unmapped_pct, "bg_pct": bg_pct,
+            "names": [shorten(PV_CLASSES[i]) for i, _ in items],
+            "pcts":  [c / len(preds) * 100 for _, c in items],
+            "idxs":  [i for i, _ in items],
         })
+        print(f"  Acc={acc:.1f}%  Bg={bg_pct:.1f}%  Unmapped={unmapped_pct:.1f}%")
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5.5))
-    fig.suptitle("Prediction Distribution on PlantDoc (Zero-Shot Transfer)", fontsize=14, fontweight="bold", y=1.01)
+    # ---- Plot ----
+    fig, axes = plt.subplots(1, 3, figsize=(14, 5))
+    UNIFIED_XMAX = 40
 
     for ax, res in zip(axes, results):
-        preds = res["preds"]
-        counter = Counter(preds)
+        cols = [CLR_BG if i == BG_IDX else CLR_UNMAPPED if i not in mapped_ix else CLR_MAPPED
+                for i in res["idxs"]]
+        y = range(len(res["names"]))
+        ax.barh(y, res["pcts"], color=cols, edgecolor="white", linewidth=0.5, height=0.6)
 
-        classes_to_show = sorted(counter.keys())
-        mapped_indices = {PV_CLASSES.index(pv_class) for pv_class in PLANTDOC_PV_MAPPING.values()}
-        counts = [counter.get(i, 0) for i in classes_to_show]
-        names = [shorten_class_name(PV_CLASSES[i]) for i in classes_to_show]
-        pcts = [counter.get(i, 0) / len(preds) * 100 for i in classes_to_show]
-
-        order = np.argsort(pcts)[::-1]
-        classes_to_show = [classes_to_show[i] for i in order]
-        names = [names[i] for i in order]
-        pcts = [pcts[i] for i in order]
-
-        n_display = 12
-        display_indices = list(range(n_display))
-        display_names = names[:n_display]
-        display_pcts = pcts[:n_display]
-        display_classes = classes_to_show[:n_display]
-
-        colors = []
-        for cidx in display_classes:
-            if cidx == BACKGROUND_CLASS_IDX:
-                colors.append("#E53935")
-            elif cidx not in mapped_indices:
-                colors.append("#BDBDBD")
-            else:
-                colors.append(res["color"])
-
-        y_pos = range(len(display_names))
-        bars = ax.barh(y_pos, display_pcts, color=colors, edgecolor="white", linewidth=0.5)
-
-        for i, (pct, cidx) in enumerate(zip(display_pcts, display_classes)):
-            if pct > 3:
-                ax.text(pct + 0.5, i, f"{pct:.1f}%", va="center", fontsize=8)
-
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels(display_names, fontsize=8)
+        ax.set_yticks(y)
+        ax.set_yticklabels(res["names"], fontsize=8.5)
         ax.invert_yaxis()
-        ax.set_xlim(0, max(display_pcts) * 1.25)
-        ax.set_xlabel("% of predictions", fontsize=9)
+        ax.set_xlim(0, UNIFIED_XMAX)
+        ax.tick_params(axis="x", labelsize=7.5)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
 
-        unmapped_pct = res["unmapped_pct"]
-        ax.set_title(
-            f"{res['label']}\nAcc: {res['acc']:.1f}% | "
-            f"Bg: {res['bg_pct']:.1f}% | "
-            f"Unmapped: {unmapped_pct:.1f}%",
-            fontsize=10, fontweight="bold",
-        )
+        ax.set_title(res["label"], fontsize=10.5, fontweight="bold", pad=4)
+        ax.text(0.98, 0.96,
+                f"Acc: {res['acc']:.1f}%\nBg: {res['bg_pct']:.1f}%\nUnm: {res['unmapped_pct']:.1f}%",
+                transform=ax.transAxes, ha="right", va="top",
+                fontsize=7.5, fontfamily="monospace",
+                bbox=dict(boxstyle="round,pad=0.2", facecolor="white", edgecolor="gray", alpha=0.85))
 
-        from matplotlib.patches import Patch
-        legend_elements = [
-            Patch(facecolor="#E53935", label="Background w/o leaves"),
-            Patch(facecolor="#BDBDBD", label="Unmapped class"),
-            Patch(facecolor=res["color"], label="Mapped class"),
-        ]
-        ax.legend(handles=legend_elements, fontsize=7, loc="lower right",
-                  framealpha=0.9, edgecolor="gray")
+    axes[1].set_xlabel("% of predictions", fontsize=9, labelpad=2)
 
-    plt.tight_layout()
+    fig.legend(
+        handles=[Patch(facecolor=CLR_BG, label="Bg w/o leaves"),
+                 Patch(facecolor=CLR_UNMAPPED, label="Unmapped"),
+                 Patch(facecolor=CLR_MAPPED, label="Mapped")],
+        loc="lower center", ncol=3, fontsize=8.5, frameon=True,
+        fancybox=False, edgecolor="gray",
+    )
+
+    plt.subplots_adjust(wspace=0.42, bottom=0.16, left=0.04, right=0.98)
     output_path = os.path.join(PAPER_DIR, "plantdoc_prediction_distribution.png")
-    fig.savefig(output_path, dpi=200, bbox_inches="tight", facecolor="white")
+    fig.savefig(output_path, dpi=250, bbox_inches="tight", facecolor="white")
     print(f"\nSaved to {output_path}")
     plt.close()
+
 
 if __name__ == "__main__":
     main()
