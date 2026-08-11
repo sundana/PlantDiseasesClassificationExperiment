@@ -70,9 +70,9 @@ In 2023, the corn harvest area in Indonesia reached 2.49 million hectares \cite{
 
 The agricultural sector has embraced innovative technologies like machine learning and IoT, leading to the emergence of precision agriculture \cite{Dhanaraju2022, Rehman2022}. This method utilizes IoT devices and sensors for identifying and categorizing items in farmland, including vegetation, soil, and the environmental conditions of the land. Previous studies have leveraged this development by developing reliable classification algorithms for various tasks, including the classification of plant diseases \cite{Ramesh2018,Sajitha2024}.
 
-This classification problem invites various research in artificial intelligence to develop methods and models to distinguish diseases on plant leaves accurately. Research conducted by Sajitha et al. \cite{Sajitha2024} compiles various current approaches that try to solve the problem of disease detection and classification in plants. This research separates traditional machine learning methods from deep learning, which is applied to classify and detect plant diseases. However, few studies have focused on corn \cite{Pardede2018,Aurangzeb2020}. In addition, the performance of traditional machine learning models is entirely accurate \cite{Harakannanavar2022, Wang2020}, but still less accurate than deep learning models based on convolutional neural networks (CNN) \cite{Shoaib2022, Kabir2021, Pandian2022}.
+This classification problem invites various research in artificial intelligence to develop methods and models to distinguish diseases on plant leaves accurately. Research conducted by Sajitha et al. \cite{Sajitha2024} compiles various current approaches that try to solve the problem of disease detection and classification in plants. This research separates traditional machine learning methods from deep learning, which is applied to classify and detect plant diseases. However, few studies have focused on corn \cite{Pardede2018,Aurangzeb2020}. In addition, traditional machine learning models have demonstrated reasonable accuracy \cite{Harakannanavar2022, Wang2020}, but still less accurate than deep learning models based on convolutional neural networks (CNN) \cite{Shoaib2022, Kabir2021, Pandian2022}.
 
-Applying machine learning and deep learning has become the central axis in various types of image research \cite{Demilie2024,Ashwini2024,hatice}. While deep learning has obtained satisfactory accuracy results in classifying plant diseases, it requires extensive resources to be applied and requires more computation time than traditional machine learning \cite{Utaminingrum2023}. Research conducted by \cite{Jadhav2021,Durairaj2020,Hossain2019} applied a gray-level co-occurrence matrix (GLCM) to extract image texture features by applying statistical analysis to neighboring pixels. The results of GLCM texture extraction can show the differences in corn leaf diseases in detail. However, segmentation is needed to distinguish leaves from their background to get adequate marks. Therefore, our proposed method offers a more practical and accessible solution by combining CNN-based image processing methods with a traditional machine learning model. This hybrid technique easily applies to classification problems that rely on IoT or mobile devices. It is a viable option for most farmers, including those in Indonesia, who often only have smartphones with moderate computing capabilities \cite{David2023}.
+Applying machine learning and deep learning has become the central axis in various types of image research \cite{Demilie2024,Ashwini2024,CatalReis2024}. While deep learning has obtained satisfactory accuracy results in classifying plant diseases, it requires extensive resources to be applied and requires more computation time than traditional machine learning \cite{Utaminingrum2023}. Research conducted by \cite{Jadhav2021,Durairaj2020,Hossain2019} applied a gray-level co-occurrence matrix (GLCM) to extract image texture features by applying statistical analysis to neighboring pixels. The results of GLCM texture extraction can show the differences in corn leaf diseases in detail. However, segmentation is needed to distinguish leaves from their background to get adequate marks. Therefore, our proposed method offers a more practical and accessible solution by combining CNN-based image processing methods with a traditional machine learning model. This hybrid technique easily applies to classification problems that rely on IoT or mobile devices. It is a viable option for most farmers, including those in Indonesia, who often only have smartphones with moderate computing capabilities \cite{David2023}.
 
 This study offers a hybrid method, the UNet-GLCM-Random Forest, where UNet is the state-of-the-art image segmentation. UNet, a convolutional neural network, is combined with more traditional extraction and classification methods to reduce the high computing needs.
 
@@ -155,7 +155,7 @@ Dissimilarity=\sum_{i}\sum_{j}p(i,j,d,\theta)|i-j|
 
 
 \begin{equation} \label{eq:4}
-Homogeneity=\sum_{i}\sum_{j}\frac{p(i,j,d,\theta)}{1+|i+j|}
+Homogeneity=\sum_{i}\sum_{j}\frac{p(i,j,d,\theta)}{1+(i-j)^2}
 \end{equation}
 
 
@@ -169,10 +169,10 @@ ASM=\sqrt{Energy}
 
 
 \begin{equation} \label{eq:7}
-    Correlation=[\sum\sum((ij)p(i,j,d,\theta)-\mu_x\mu_y)]
+    Correlation=\frac{\sum_{i}\sum_{j}(i-\mu_x)(j-\mu_y)p(i,j,d,\theta)}{\sigma_x\sigma_y}
 \end{equation} 
 
-where, $p$\ is probability. $i$\ is gray level of location pixels (x,y). $j$ is gray level of pixels at distance $d$ and orientation angle $\theta$. $d$ is pixel distance at orientation angle $\theta\degree$. $\theta$ is orientation angle of the main pixel $(0\degree, 45\degree, 90\degree, 145\degree)$. $\mu_x\mu_y$ is average of the probabilities $x$ and $y$.
+where, $p$\ is probability. $i$\ is gray level of location pixels (x,y). $j$ is gray level of pixels at distance $d$ and orientation angle $\theta$. $d$ is pixel distance at orientation angle $\theta\degree$. $\theta$ is orientation angle of the main pixel $(0\degree, 45\degree, 90\degree, 135\degree)$. $\mu_x\mu_y$ is average of the probabilities $x$ and $y$. $\sigma_x\sigma_y$ is standard deviation of the probabilities $x$ and $y$.
 
 
 \subsection{Feature selection using PCA}
@@ -257,7 +257,7 @@ Fig. \ref{fig:segmentation-result} shows the difference in results from segmenta
 
 Table \ref{table:1} shows the results of prediction measurements on variations in the number of GLCM features. For feature 120, do not apply feature selection using PCA. Based on Table \ref{table:1}, the accuracy is similar for each number of features, namely in the 82\% to 87\% range. Decreasing the dimensionality of the training data from PCA did not contribute to decreasing the prediction accuracy of the model.
 
-The model achieved an accuracy of 0.87, with a precision of 0.87, recall of 0.87, and F1-score of 0.87, across all feature sets. These metrics reflect the balanced performance of the classifier across all evaluated classes.
+The model achieved the best performance with 120 and 10 features, yielding an accuracy of 0.87, precision of 0.87, recall of 0.87, and F1-score of 0.87. Intermediate dimensionality levels (30--90 features) showed a slight decline, with accuracy dropping to 0.82--0.84. This U-shaped performance curve reflects the balanced performance of the classifier under optimal feature configurations.
 
 The similar performance between 10 and 120 features suggests that the most critical information was captured by the top 10 features, while additional features did not significantly improve classification. However, the intermediate feature sets (30-90) may have introduced noise or redundant information, leading to poorer performance. This outcome highlights the importance of selecting only the most informative features for efficient classification.
 
@@ -292,7 +292,7 @@ The results show that the computing time also decreased as the number of PCA dim
             ymin=0.0,
             ymax=5.0,
             ylabel={Time computation (s)},
-            xlabel={Num. of PCA dimensionality of eatures},
+            xlabel={Num. of PCA dimensionality of features},
             nodes near coords,
             bar width=1cm,
             width=8cm,
