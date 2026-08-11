@@ -32,38 +32,57 @@ ANGLES = [0, np.pi/4, np.pi/2, 3*np.pi/4]
 GLCM_PROPS = ['contrast', 'dissimilarity', 'homogeneity', 'energy', 'correlation', 'ASM']
 
 def load_dataset(data_dir):
-    """Load PlantVillage corn dataset (recursive search)"""
+    """Load PlantVillage corn dataset from class directories"""
     images, labels = [], []
     name_map = {
-        'r.s_hl': 0,    # Healthy
-        'rs_glsp': 3,   # Gray Leaf Spot
-        'rs_nlb': 2,    # Northern Leaf Blight
-        # Common_Rust: PlantVillage GitHub structure lost; exclude generic "image (" files
-        # that match too broadly. Use 3 classes if Common_Rust data is unavailable.
+        'healthy': 0,
+        'Common_rust': 1,
+        'Northern_Leaf_Blight': 2,
+        'Cercospora_leaf_spot_Gray_leaf_spot': 3,
     }
-    all_files = []
-    for root, dirs, files in os.walk(data_dir):
-        for f in files:
-            if f.lower().endswith(('.jpg', '.jpeg', '.png')):
-                all_files.append(os.path.join(root, f))
-    print(f'  Found {len(all_files)} total images, classifying...')
-    for fpath in tqdm(all_files, desc='Loading'):
-        fname = os.path.basename(fpath)
-        fname_l = fname.lower()
-        cls = None
-        for key, val in name_map.items():
-            if key in fname_l or key.replace('_', '') in fname_l.replace('_', ''):
-                cls = val
-                break
-        if cls is None:
-            continue
-        img = cv2.imread(fpath)
-        if img is None:
-            continue
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-        images.append(img)
-        labels.append(cls)
-
+    # First try class-directory structure (from fixed download)
+    for cls_name, cls_id in name_map.items():
+        cls_path = os.path.join(data_dir, cls_name)
+        if os.path.isdir(cls_path):
+            files = [f for f in os.listdir(cls_path)
+                     if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            print(f'  {CLASSES[cls_id]}: {len(files)} images')
+            for f in tqdm(files, desc=f'Loading {cls_name}', leave=False):
+                img = cv2.imread(os.path.join(cls_path, f))
+                if img is None:
+                    continue
+                img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+                images.append(img)
+                labels.append(cls_id)
+    # Fallback: recursive search with filename matching
+    if len(images) == 0:
+        print('  No class directories found, trying recursive search...')
+        name_map_fb = {
+            'r.s_hl': 0, 'rs_glsp': 3, 'rs_nlb': 2,
+            'Common_rust': 1, 'healthy': 0,
+        }
+        all_files = []
+        for root, dirs, files in os.walk(data_dir):
+            for f in files:
+                if f.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    all_files.append(os.path.join(root, f))
+        print(f'  Found {len(all_files)} total images, classifying...')
+        for fpath in tqdm(all_files, desc='Loading'):
+            fname = os.path.basename(fpath).lower()
+            cls = None
+            for key, val in name_map_fb.items():
+                if key.lower().replace('_', '') in fname.replace('_', ''):
+                    cls = val
+                    break
+            if cls is None:
+                continue
+            img = cv2.imread(fpath)
+            if img is None:
+                continue
+            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            images.append(img)
+            labels.append(cls)
+    
     for i, cname in enumerate(CLASSES):
         print(f'  {cname}: {np.sum(np.array(labels)==i)} images')
 

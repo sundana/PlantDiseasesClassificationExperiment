@@ -22,18 +22,24 @@ with zipfile.ZipFile(io.BytesIO(content)) as zf:
     
     count = 0
     for f in corn_files:
+        # Extract class from the ZIP path (e.g., ".../Corn_(maize)___Common_rust/xxx.JPG")
+        path_parts = f.split('/')
+        class_from_path = None
+        for part in path_parts:
+            if '___' in part:
+                class_from_path = part.split('___')[1].replace('(', '').replace(')', '').replace(' ', '_')
+                break
+        if class_from_path is None:
+            continue
         basename = os.path.basename(f)
-        parts = basename.split('___')
-        if len(parts) > 1:
-            cls = parts[1].replace('(', '').replace(')', '').replace(' ', '_')
-            cls_dir = os.path.join(data_dir, cls)
-            os.makedirs(cls_dir, exist_ok=True)
-            dst = os.path.join(cls_dir, basename)
-            if not os.path.exists(dst):
-                data = zf.read(f)
-                with open(dst, 'wb') as fout:
-                    fout.write(data)
-                count += 1
+        cls_dir = os.path.join(data_dir, class_from_path)
+        os.makedirs(cls_dir, exist_ok=True)
+        dst = os.path.join(cls_dir, basename)
+        if not os.path.exists(dst):
+            data = zf.read(f)
+            with open(dst, 'wb') as fout:
+                fout.write(data)
+            count += 1
     print(f'Extracted {count} images', flush=True)
 
 print('\nDataset structure:', flush=True)
