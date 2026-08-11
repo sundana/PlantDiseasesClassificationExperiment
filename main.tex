@@ -1,10 +1,9 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
-% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
-% \usepackage[a4]{geometry}
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[a4paper, left=2.5cm, right=2cm, top=2.5cm, bottom=2cm]{geometry}
+\usepackage{newtxtext,newtxmath}
 \usepackage{tabularx}
-\usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath}
 \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
@@ -13,37 +12,57 @@
 \pgfplotsset{compat=1.9}
 \usepackage{tikz}
 \usepackage{gensymb}
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{indentfirst}
+\usepackage{setspace}
+\usepackage[hyphens]{url}
+
+\captionsetup{font={small,bf}, labelfont=bf, skip=6pt}
+\captionsetup[table]{position=above, skip=6pt}
+
+\titleformat{\section}{\normalfont\fontsize{12}{14}\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\fontsize{12}{14}\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\fontsize{10}{12}\bfseries\itshape}{\thesubsubsection}{1em}{}
+
+\titlespacing{\section}{0pt}{12pt}{6pt}
+\titlespacing{\subsection}{0pt}{12pt}{6pt}
+\titlespacing{\subsubsection}{0pt}{12pt}{3pt}
+
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{1em}
+\onehalfspacing
+
+\usepackage[numbers,sort&compress]{natbib}
+
 \begin{document}
 
-\title{Corn Diseases Classification Using Grey-Level Co-Occurrence Matrix and Random Forest Algorithm\\
-}
+\begin{center}
+    {\fontsize{14}{17}\bfseries Corn Diseases Classification Using Grey-Level Co-Occurrence Matrix and Random Forest Algorithm\par}
+    \vspace{12pt}
+    {\large
+        Firmansyah Sundana\textsuperscript{1}, Fitri Utaminingrum\textsuperscript{2}\\
+    }
+    \vspace{6pt}
+    \small
+    \textsuperscript{1}Graduate Program Of Computer Science, Faculty of Computer Science, Brawijaya University, Malang, Indonesia\\
+    \textsuperscript{2}Computer Vision Research Group, Faculty of Computer Science, Brawijaya University, Malang, Indonesia\\
+    \vspace{3pt}
+    \{sundana, f3\_ningrum\}@ub.ac.id\\
+    \vspace{6pt}
+    Received xx month xxxx; accepted xx month xxxx
+\end{center}
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Firmansyah Sundana}
-\IEEEauthorblockA{\textit{Graduate Program Of Computer Science} \\
-\textit{Faculty of Computer Science}\\
-\textit{Brawijaya University}\\
-Malang, Indonesia \\
-sundana@student.ub.ac.id}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} Fitri Utaminingrum}
-\IEEEauthorblockA{\textit{Computer Vision Research Group} \\
-\textit{Faculty of Computer Science}\\
-\textit{Brawijaya University}\\
-Malang, Indonesia \\
-f3\_ningrum@ub.ac.id}
-}
+\vspace{6pt}
+\begin{center}
+    \textbf{\fontsize{10}{12}\selectfont Abstract}
+\end{center}
+\noindent Corn diseases are a primary concern in agriculture, leading to significant crop failure and economic losses for businesses reliant on corn supplies. Effective disease prevention before harvest is essential, yet existing classification methods often need to be revised, complicating disease management efforts. This study presents an advanced approach to improve the accuracy of corn disease classification by leveraging computer vision technology. The method begins with the U-Net segmentation model, which precisely isolates corn leaves from their background, facilitating the extraction of crucial plant features. These features are then analyzed using the Gray-Level Co-occurrence Matrix (GLCM) technique to capture essential texture information. To further enhance classification accuracy, Principal Component Analysis (PCA) is applied to select the most relevant features, reducing dimensionality and improving model efficiency. The Random Forest algorithm then classifies the extracted features into disease categories. The proposed method achieved an accuracy rate of up to 87\% and low time computation, indicating its effectiveness in accurately identifying corn leaf diseases. These results underscore the potential of this approach to significantly reduce the economic impact of corn diseases by enabling more reliable and timely disease detection.
 
-\maketitle
-
-\begin{abstract}
-Corn diseases are a primary concern in agriculture, leading to significant crop failure and economic losses for businesses reliant on corn supplies. Effective disease prevention before harvest is essential, yet existing classification methods often need to be revised, complicating disease management efforts. This study presents an advanced approach to improve the accuracy of corn disease classification by leveraging computer vision technology. The method begins with the U-Net segmentation model, which precisely isolates corn leaves from their background, facilitating the extraction of crucial plant features. These features are then analyzed using the Gray-Level Co-occurrence Matrix (GLCM) technique to capture essential texture information. To further enhance classification accuracy, Principal Component Analysis (PCA) is applied to select the most relevant features, reducing dimensionality and improving model efficiency. The Random Forest algorithm then classifies the extracted features into disease categories. The proposed method achieved an accuracy rate of up to 87\% and low time computation, indicating its effectiveness in accurately identifying corn leaf diseases. These results underscore the potential of this approach to significantly reduce the economic impact of corn diseases by enabling more reliable and timely disease detection. This research offers farmers and agricultural industries valuable tools to mitigate losses and improve crop health.
-\end{abstract}
-
-\begin{IEEEkeywords}
-GLCM, image classification, computer vision
-\end{IEEEkeywords}
+\vspace{6pt}
+\noindent\textbf{Keywords:} GLCM, image classification, computer vision, corn disease, random forest
 
 \section{Introduction}
 
@@ -59,7 +78,7 @@ This study offers a hybrid method, the UNet-GLCM-Random Forest, where UNet is th
 
 Our proposed method offers a more practical and accessible solution by combining CNN-based image processing methods with a traditional machine learning model. This hybrid technique easily applies to classification problems that rely on IoT or mobile devices. It is a viable option for most farmers, including those in Indonesia, who often only have instruments with moderate computing capabilities. It also can significantly maintain the appropriate accuracy and availability of tools used in precision agriculture to classify diseases in corn without constraint in computing resources \cite{Nawrocki2023} and time complexity \cite{Theodoropoulos2023}. This method could be a game-changer for the agricultural sector, offering a promising solution to the persistent challenge of disease outbreaks in corn.
 
-\section{Material and Methods}
+\section{Method}
 
 \subsection{Proposed Method}
 
@@ -249,7 +268,7 @@ The results show that the computing time also decreased as the number of PCA dim
 \begin{table}[ht]
     \centering
     \caption{The prediction results are based on the number of PCA dimensionality of GLCM features in the test data.}
-    \begin{tabularx}{\columnwidth}{|c|c|c|c|c|}
+    \begin{tabularx}{\linewidth}{|c|c|c|c|c|}
         \hline
         \textbf{Feature Dimensionality} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
         \hline
