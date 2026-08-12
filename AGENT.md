@@ -92,3 +92,9 @@ Authors are responsible for ensuring the accuracy and completeness of all refere
 -Prior to publication, authors are required to ensure that their manuscripts fully comply with the journal's formatting and layout requirements.
 -Accepted manuscripts may undergo final copyediting and formatting. Authors will be asked to review and approve the final proofs before publication.
 -If applicable, the Article Processing Charge (APC) must be settled prior to publication. For detailed information, please refer to the journal's APC page: Article Processing Charge (APC).
+
+
+
+# Experiment Pipeline
+
+1. Run pipeline using conda env: tf

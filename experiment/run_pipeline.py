@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import tensorflow as tf
-from tensorflow.keras import layers, Model, Input
+from keras import layers, Model, Input
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.decomposition import PCA
