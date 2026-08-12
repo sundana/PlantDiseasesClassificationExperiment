@@ -348,11 +348,11 @@ def main():
                                                     random_state=42, stratify=y_test)
 
         # Random Forest
-        t0 = time.time()
+        t0 = time.perf_counter()
         rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
         rf.fit(X_tr, y_tr)
         y_pred_rf = rf.predict(X_te)
-        t_rf = time.time() - t0
+        t_rf = time.perf_counter() - t0
 
         rf_results[dim] = {
             'accuracy': accuracy_score(y_te, y_pred_rf),
@@ -366,11 +366,11 @@ def main():
         }
 
         # SVM Baseline
-        t0 = time.time()
+        t0 = time.perf_counter()
         svm = SVC(kernel='rbf', random_state=42)
         svm.fit(X_tr, y_tr)
         y_pred_svm = svm.predict(X_te)
-        t_svm = time.time() - t0
+        t_svm = time.perf_counter() - t0
 
         svm_results[dim] = {
             'accuracy': accuracy_score(y_te, y_pred_svm),
@@ -389,7 +389,7 @@ def main():
 
     # CNN Baseline (on raw images)
     print("\n  CNN Baseline (ConvNet on raw images)...")
-    t0 = time.time()
+    t0 = time.perf_counter()
     cnn = tf.keras.Sequential([
         layers.Conv2D(32, 3, activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)),
         layers.MaxPooling2D(2),
