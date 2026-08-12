@@ -11,6 +11,7 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.9}
 \usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
 \usepackage{gensymb}
 \usepackage{caption}
 \usepackage{enumitem}
@@ -86,8 +87,46 @@ The classification pipeline was executed on a system equipped with an NVIDIA GeF
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.95\linewidth]{images/comvis-diagram.drawio(2).png}
-    \caption{The flow through the method offered.}
+    \begin{tikzpicture}[
+        node distance=0.85cm and 0.55cm,
+        block/.style={rectangle, draw=black, line width=0.5pt,
+                      rounded corners=3pt, minimum width=1.7cm, minimum height=0.85cm,
+                      align=center, font=\footnotesize, inner sep=2pt},
+        bigblock/.style={block, minimum width=2.0cm, minimum height=0.95cm, font=\small\bfseries},
+        arr/.style={-{Stealth[length=2.5mm, width=2.5mm]}, line width=0.6pt},
+        lbl/.style={font=\scriptsize\itshape, text=black!60},
+        group/.style={draw=black!40, dashed, rounded corners=4pt, inner sep=8pt},
+    ]
+    % Row 1 --- Preprocessing ---
+    \node[bigblock, fill=black!5] (input) {Input\\Corn Leaf};
+    \node[block, right=of input] (unet) {U-Net\\Segmentation};
+    \node[block, right=of unet] (gray) {Grayscale\\Conversion};
+
+    \begin{scope}[on background layer]
+        \node[group, fit=(unet)(gray), label={[font=\footnotesize\bfseries]above:Preprocessing}] {};
+    \end{scope}
+
+    % Row 2 --- Feature Engineering ---
+    \node[block, below=of unet, xshift=0.9cm] (glcm) {GLCM Feature\\Extraction\\{\tiny 5 $d$ $\times$ 4 $\theta$ $\times$ 6 props}};
+    \node[block, right=of glcm] (pca) {PCA Feature\\Selection\\{\tiny 10/30/60/90/120 dim}};
+
+    \begin{scope}[on background layer]
+        \node[group, fit=(glcm)(pca), label={[font=\footnotesize\bfseries]above:Feature Engineering}] {};
+    \end{scope}
+
+    % Row 3 --- Classification ---
+    \node[block, below=of glcm, xshift=2.1cm] (rf) {Random Forest\\Classification};
+    \node[bigblock, fill=black!5, right=of rf] (out) {Output\\4 Disease\\Classes};
+
+    % Arrows
+    \draw[arr] (input) -- (unet);
+    \draw[arr] (unet) -- (gray);
+    \draw[arr] (gray.east) -- ++(0.3,0) |- (glcm.east);
+    \draw[arr] (glcm) -- (pca);
+    \draw[arr] (pca.south) -- ++(0,-0.4) -| (rf.north);
+    \draw[arr] (rf) -- (out);
+    \end{tikzpicture}
+    \caption{Proposed pipeline for corn disease classification using U-Net segmentation, GLCM texture extraction, PCA dimensionality reduction, and Random Forest classification.}
     \label{fig:proposedmethod}
 \end{figure}
 
