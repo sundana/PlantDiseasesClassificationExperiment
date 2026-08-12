@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import numpy as np
 import cv2
@@ -9,6 +10,7 @@ warnings.filterwarnings('ignore')
 
 import tensorflow as tf
 from keras import layers, Model, Input
+from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.decomposition import PCA
@@ -23,13 +25,59 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 OUTPUT_DIR = "experiment/output"
+MODEL_DIR = "experiment/models"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 CLASSES = ['Healthy', 'Common_Rust', 'Northern_Leaf_Blight', 'Gray_Leaf_Spot']
 IMG_SIZE = 256
 DISTANCES = [1, 2, 3, 4, 5]
 ANGLES = [0, np.pi/4, np.pi/2, 3*np.pi/4]
 GLCM_PROPS = ['contrast', 'dissimilarity', 'homogeneity', 'energy', 'correlation', 'ASM']
+
+# COCO annotated dataset path (Roboflow export)
+COCO_DATASET_DIR = "/mnt/d/datasets/Corn Leaf Diseases Annotation.coco-segmentation"
+
+
+def load_coco_seg_dataset(base_dir):
+    """Load COCO segmentation dataset and create image/mask pairs for U-Net training."""
+    images, masks = [], []
+    for split in ['train', 'valid']:
+        ann_path = os.path.join(base_dir, split, '_annotations.coco.json')
+        img_dir = os.path.join(base_dir, split)
+        if not os.path.exists(ann_path):
+            continue
+        with open(ann_path) as f:
+            data = json.load(f)
+        id_to_file = {img['id']: img['file_name'] for img in data['images']}
+        print(f"  {split}: {len(data['images'])} images, {len(data['annotations'])} annotations")
+        for ann in tqdm(data['annotations'], desc=f'Loading {split} masks', leave=False):
+            fname = id_to_file.get(ann['image_id'])
+            if fname is None:
+                continue
+            img_path = os.path.join(img_dir, fname)
+            img = cv2.imread(img_path)
+            if img is None:
+                continue
+            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            h, w = img.shape[:2]
+            mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.uint8)
+            polygons = ann['segmentation']
+            if not polygons:
+                continue
+            for polygon in polygons:
+                pts = np.array(polygon, dtype=np.float32).reshape(-1, 2)
+                # Scale polygon coords: assume original bbox matches image dimensions
+                bw, bh = ann.get('bbox', [0, 0, IMG_SIZE, IMG_SIZE])[2:]
+                sx = IMG_SIZE / max(bw, IMG_SIZE)
+                sy = IMG_SIZE / max(bh, IMG_SIZE)
+                pts[:, 0] = pts[:, 0] * sx
+                pts[:, 1] = pts[:, 1] * sy
+                cv2.fillPoly(mask, [pts.astype(np.int32)], 255)
+            images.append(img)
+            masks.append(mask)
+    return np.array(images), np.array(masks, dtype=np.float32)[..., np.newaxis] / 255.0
+
 
 def load_dataset(data_dir):
     """Load PlantVillage corn dataset from class directories"""
@@ -210,27 +258,60 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # Segmentation
-    print("\n[2/5] Segmentation (Otsu + U-Net)...")
-    masks_train = np.zeros((len(X_train), IMG_SIZE, IMG_SIZE), dtype=np.uint8)
-    masks_test = np.zeros((len(X_test), IMG_SIZE, IMG_SIZE), dtype=np.uint8)
-
-    for i in tqdm(range(len(X_train)), desc="Seg train"):
-        masks_train[i] = otsu_segment(X_train[i])
-    for i in tqdm(range(len(X_test)), desc="Seg test"):
-        masks_test[i] = otsu_segment(X_test[i])
-
-    # Train lightweight U-Net
+    # Segmentation: train U-Net on COCO annotated dataset
+    print("\n[2/5] Segmentation (U-Net trained on Roboflow COCO annotations)...")
+    
+    # Load COCO annotated dataset with proper ground truth masks
+    print("  Loading annotated dataset...")
+    coco_images, coco_masks = load_coco_seg_dataset(COCO_DATASET_DIR)
+    print(f"  Total annotated samples: {len(coco_images)}")
+    
+    # Split annotated dataset for U-Net training
+    from sklearn.model_selection import train_test_split as tts
+    X_seg, X_val, m_seg, m_val = tts(
+        coco_images, coco_masks, test_size=0.15, random_state=42)
+    print(f"  U-Net train: {len(X_seg)}, val: {len(X_val)}")
+    
+    # Train U-Net on proper ground truth masks
     unet = build_unet()
     unet.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    m_train = masks_train.reshape(-1, IMG_SIZE, IMG_SIZE, 1) / 255.0
-    unet.fit(X_train / 255.0, m_train, batch_size=8, epochs=15, verbose=0,
-             validation_split=0.2)
-
-    # Apply U-Net segmentation
+    unet.summary()
+    
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-7),
+    ]
+    
+    history = unet.fit(
+        X_seg / 255.0, m_seg,
+        batch_size=8, epochs=50, verbose=1,
+        validation_data=(X_val / 255.0, m_val),
+        callbacks=callbacks,
+    )
+    
+    # Save trained U-Net model
+    unet.save(os.path.join(MODEL_DIR, 'unet_segmentation.keras'))
+    print(f"  U-Net model saved to {MODEL_DIR}/unet_segmentation.keras")
+    
+    # Plot training history
+    plt.figure(figsize=(10, 4))
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['loss'], label='Train Loss')
+    plt.plot(history.history['val_loss'], label='Val Loss')
+    plt.title('U-Net Training Loss'); plt.xlabel('Epoch'); plt.ylabel('Loss'); plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['accuracy'], label='Train Acc')
+    plt.plot(history.history['val_accuracy'], label='Val Acc')
+    plt.title('U-Net Training Accuracy'); plt.xlabel('Epoch'); plt.ylabel('Accuracy'); plt.legend()
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_DIR, 'unet_training.png'), dpi=150)
+    plt.close()
+    
+    # Apply trained U-Net to segment classification images
+    print("  Applying U-Net segmentation to classification images...")
     pred_masks = unet.predict(X_test / 255.0, verbose=0)
     pred_masks = (pred_masks > 0.5).astype(np.uint8).squeeze() * 255
-
+    
     # Segment images (apply mask)
     X_test_seg = np.zeros_like(X_test)
     for i in range(len(X_test)):

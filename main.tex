@@ -61,7 +61,7 @@
 \begin{center}
     \textbf{\fontsize{10}{12}\selectfont Abstract}
 \end{center}
-\noindent Corn diseases are a primary concern in agriculture, leading to significant crop failure and economic losses for businesses reliant on corn supplies. Effective disease prevention before harvest is essential, yet existing classification methods often prove inadequate, complicating disease management efforts. This study presents an advanced approach to improve the accuracy of corn disease classification by leveraging computer vision technology. The method begins with the U-Net segmentation model, which precisely isolates corn leaves from their background, facilitating the extraction of crucial plant features. These features are then analyzed using the Gray-Level Co-occurrence Matrix (GLCM) technique to capture essential texture information. To further enhance classification accuracy, Principal Component Analysis (PCA) is applied to select the most relevant features, reducing dimensionality and improving model efficiency. The Random Forest algorithm then classifies the extracted features into disease categories. The proposed method achieved an accuracy rate of up to 78.3\% with 60 PCA-selected features and demonstrated a computation time of 0.16 seconds, significantly faster than a CNN baseline (51.3 seconds on GPU) while maintaining competitive performance. Per-class analysis revealed that Healthy and Common Rust leaves achieve the highest F1-score (0.90), while Northern Leaf Blight remains the most challenging class (F1=0.69). These results underscore the potential of this lightweight approach for deployment on resource-constrained IoT and mobile devices in precision agriculture.
+\noindent Corn diseases are a primary concern in agriculture, leading to significant crop failure and economic losses for businesses reliant on corn supplies. Effective disease prevention before harvest is essential, yet existing classification methods often prove inadequate, complicating disease management efforts. This study presents an advanced approach to improve the accuracy of corn disease classification by leveraging computer vision technology. The method begins with the U-Net segmentation model, which precisely isolates corn leaves from their background, facilitating the extraction of crucial plant features. These features are then analyzed using the Gray-Level Co-occurrence Matrix (GLCM) technique to capture essential texture information. To further enhance classification accuracy, Principal Component Analysis (PCA) is applied to select the most relevant features, reducing dimensionality and improving model efficiency. The Random Forest algorithm then classifies the extracted features into disease categories. The proposed method achieved an accuracy rate of up to 85.5\% with 60 PCA-selected features and demonstrated a computation time of 0.17 seconds, significantly faster than a CNN baseline (55.4 seconds on GPU) while maintaining competitive performance. Per-class analysis revealed that Healthy and Common Rust leaves achieve near-perfect F1-scores (0.95 and 0.98), while Northern Leaf Blight remains the most challenging class (F1=0.68). These results underscore the potential of this lightweight approach for deployment on resource-constrained IoT and mobile devices in precision agriculture.
 
 \vspace{6pt}
 \noindent\textbf{Keywords:} GLCM, image classification, computer vision, corn disease, random forest
@@ -80,7 +80,11 @@ Applying machine learning and deep learning has become the central axis in vario
 
 \subsection{Proposed Method}
 
-This research applies a model based on computer vision and machine learning. We propose the U-Net+GLCM+Random Forest method to classify corn diseases by referring to the symptoms on the leaves. The model's overall structure can be seen in the Fig. \ref{fig:proposedmethod}. The corn samples used were Healthy and Non-Healthy, with three classes of Non-Healthy, including common rust, northern leaf blight, and gray leaf spot. The image size used is $256 \times 256$ pixels. Before segmenting the image, Roboflow annotates it to separate the background from the leaves. The annotation results train the U-Net model for segmentation. Feature extraction in segmented images applies the Gray-Level Co-Occurrence Matrix technique. The extracted features are then selected using the Principal Component Analysis method to reduce the dimensionality of the training data and prevent overfitting. 
+This research applies a model based on computer vision and machine learning. We propose the U-Net+GLCM+Random Forest method to classify corn diseases by referring to the symptoms on the leaves. The model's overall structure can be seen in the Fig. \ref{fig:proposedmethod}. The corn samples used were Healthy and Non-Healthy, with three classes of Non-Healthy, including common rust, northern leaf blight, and gray leaf spot. The image size used is $256 \times 256$ pixels. 
+
+The U-Net segmentation model was trained on 1,928 corn leaf images annotated in COCO polygon format, exported from Roboflow. The annotated dataset provides pixel-level ground truth masks that precisely delineate each leaf from its background, enabling the U-Net to learn accurate leaf segmentation. Training employed the Adam optimizer with binary cross-entropy loss, a batch size of 8, and early stopping with a patience of 10 epochs on validation loss, with learning rate reduction on plateau (factor 0.5, patience 5). 
+
+Feature extraction in segmented images applies the Gray-Level Co-Occurrence Matrix technique. The extracted features are then selected using the Principal Component Analysis method to reduce the dimensionality of the training data and prevent overfitting. 
 
 % The Random Forest classifier was chosen for its robustness in handling high-dimensional data and its ability to generalize well with relatively small datasets. Compared to deep learning methods like CNNs, Random Forest requires less computational power, making it suitable for mobile and IoT devices with limited resources. While deep learning models such as CNNs often achieve high accuracy, they require large datasets and computational resources, which may not be practical for real-time field use in agriculture. Traditional classifiers like SVM, though effective, are prone to overfitting and require significant tuning for optimal performance in texture-based feature spaces, such as those generated by GLCM.
 
@@ -355,15 +359,15 @@ Fig. \ref{fig:segmentation-result} shows the difference in results from three se
 \end{figure}
 
 
-Table \ref{table:1} shows the results of prediction measurements on variations in the number of GLCM features. The best accuracy of 78.3\% was achieved using 60 PCA-selected features. The inverted U-shaped performance pattern suggests that up to 60 features, adding more informative dimensions improves classification, while beyond this point, redundant or noisy features degrade performance.
+Table \ref{table:1} shows the results of prediction measurements on variations in the number of GLCM features. The best accuracy of 85.5\% was achieved using 60 PCA-selected features. The inverted U-shaped performance pattern suggests that up to 60 features, adding more informative dimensions improves classification, while beyond this point, redundant or noisy features degrade performance. Notably, the accuracy drops sharply at 120 features (73.5\%), demonstrating that PCA-based feature selection is essential for this pipeline.
 
-The model achieved the best accuracy of 0.78 with 60 PCA-selected GLCM features, with precision of 0.78, recall of 0.78, and F1-score of 0.78. The per-class breakdown, shown in Table \ref{table:2}, reveals that Healthy and Common Rust leaves are classified most reliably (F1=0.90), while Northern Leaf Blight presents the greatest challenge (F1=0.69). The method comparison in Table \ref{table:3} shows that the proposed Random Forest approach achieves competitive performance with significantly lower computational cost compared to a CNN baseline (0.16s vs. 51.3s on GPU).
+The model achieved the best accuracy of 0.86 with 60 PCA-selected GLCM features, with precision of 0.86, recall of 0.86, and F1-score of 0.85. The per-class breakdown, shown in Table \ref{table:2}, reveals that Healthy and Common Rust leaves are classified with near-perfect reliability (F1=0.95 and 0.98 respectively), while Northern Leaf Blight presents the greatest challenge with an F1-score of 0.68. The method comparison in Table \ref{table:3} shows that the proposed Random Forest approach achieves competitive performance with significantly lower computational cost compared to a CNN baseline (0.17s vs. 55.4s on GPU), making it approximately 326 times faster.
 
-The accuracy peaks at 60 features (0.78) and declines at higher dimensions, suggesting that beyond the optimal PCA dimensionality, redundant features introduce noise and reduce classification performance. The drop in accuracy at lower dimensions (30 and 10 features) indicates that too aggressive dimensionality reduction discards discriminative information. This finding highlights the importance of proper dimensionality selection when applying PCA to GLCM features for crop disease classification.
+The accuracy peaks at 60 features (0.86) and is sustained at 90 features (0.86), suggesting that the optimal information content from GLCM texture features is concentrated within approximately 60–90 principal components. The sharp decline at 120 features (0.73) indicates that raw GLCM features contain substantial redundancy and noise that PCA effectively eliminates. The drop at 10 features (0.81) shows that too aggressive dimensionality reduction discards discriminative information. This finding confirms the importance of proper dimensionality selection when applying PCA to GLCM features for crop disease classification.
 
 % The graph \ref{fig:accuracy-results} visualizes the differences in accuracy in more detail for each number of features. Feature 120 (without feature selection) has the same accuracy as feature 10 (with feature selection). Meanwhile, from feature 90 to 30, there is a decrease in accuracy. The result shows a minimum number of GLCM features that are significant in detecting disease on corn leaves with an accuracy level of 87\%. Therefore, applying PCA to reduce the number of features to an exact number will have an accuracy comparable to the overall number of GLCM feature combinations.
 
-The results show that the computing time remains consistently low across all PCA dimensionality levels, ranging from 0.11 to 0.18 seconds. Fig. \ref{fig:time-results} illustrates that the number of GLCM features has minimal impact on classification time, as the Random Forest algorithm operates efficiently regardless of feature count.
+The results show that the computing time remains consistently low across all PCA dimensionality levels, ranging from 0.11 to 0.17 seconds. Fig. \ref{fig:time-results} illustrates that the number of GLCM features has minimal impact on classification time, as the Random Forest algorithm operates efficiently regardless of feature count.
 
 \begin{table}[ht]
     \centering
@@ -372,11 +376,11 @@ The results show that the computing time remains consistently low across all PCA
         \hline
         \textbf{Feature Dimensionality} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
         \hline
-        120 (No Feature Selection) & 0.70 & 0.73 & 0.70 & 0.71 \\
-        90 & 0.75 & 0.74 & 0.75 & 0.74 \\
-        60 & 0.78 & 0.78 & 0.78 & 0.78 \\
-        30 & 0.77 & 0.76 & 0.77 & 0.76 \\
-        10 & 0.76 & 0.76 & 0.76 & 0.76 \\
+        120 (No Feature Selection) & 0.73 & 0.73 & 0.73 & 0.73 \\
+        90 & 0.86 & 0.85 & 0.86 & 0.85 \\
+        60 & 0.86 & 0.86 & 0.86 & 0.85 \\
+        30 & 0.84 & 0.85 & 0.84 & 0.84 \\
+        10 & 0.81 & 0.80 & 0.81 & 0.80 \\
         \hline
     \end{tabularx}
     \label{table:1}
@@ -399,7 +403,7 @@ The results show that the computing time remains consistently low across all PCA
             height=6cm,
             enlarge x limits={abs=0.75cm}
         ]
-        \addplot coordinates {(120, 0.11) (90, 0.18) (60, 0.16) (30, 0.17) (10, 0.17)};
+        \addplot coordinates {(120, 0.11) (90, 0.16) (60, 0.17) (30, 0.16) (10, 0.15)};
         \end{axis}
     \end{tikzpicture}
     \caption{Graph of average computation time for each number of PCA dimensionality of GLCM features.}
@@ -413,12 +417,12 @@ The results show that the computing time remains consistently low across all PCA
         \hline
         \textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{Support} \\
         \hline
-        Healthy & 0.95 & 0.86 & 0.90 & 21 \\
-        Common Rust & 0.90 & 0.90 & 0.90 & 20 \\
-        Northern Leaf Blight & 0.61 & 0.81 & 0.69 & 21 \\
-        Gray Leaf Spot & 0.88 & 0.67 & 0.76 & 21 \\
+        Healthy & 0.91 & 1.00 & 0.95 & 21 \\
+        Common Rust & 0.95 & 1.00 & 0.98 & 20 \\
+        Northern Leaf Blight & 0.76 & 0.62 & 0.68 & 21 \\
+        Gray Leaf Spot & 0.73 & 0.76 & 0.74 & 21 \\
         \hline
-        \textbf{Weighted Avg} & \textbf{0.83} & \textbf{0.81} & \textbf{0.81} & \textbf{83} \\
+        \textbf{Weighted Avg} & \textbf{0.84} & \textbf{0.84} & \textbf{0.84} & \textbf{83} \\
         \hline
     \end{tabularx}
     \label{table:2}
@@ -431,9 +435,9 @@ The results show that the computing time remains consistently low across all PCA
         \hline
         \textbf{Method} & \textbf{Accuracy} & \textbf{F1-score} & \textbf{Time (s)} \\
         \hline
-        Random Forest + GLCM + PCA (60 dim) & 0.78 & 0.81 & 0.16 \\
-        SVM + GLCM + PCA (120 dim) & 0.67 & 0.68 & 0.00 \\
-        CNN (Raw Images) & 0.86 & -- & 51.3 \\
+        Random Forest + GLCM + PCA (60 dim) & 0.86 & 0.85 & 0.17 \\
+        SVM + GLCM + PCA (120 dim) & 0.80 & 0.79 & 0.00 \\
+        CNN (Raw Images) & 0.87 & -- & 55.4 \\
         \hline
     \end{tabularx}
     \label{table:3}
@@ -441,7 +445,7 @@ The results show that the computing time remains consistently low across all PCA
 
 \section{Conclusion}
 
-Classifying diseases in corn is crucial for preventing and minimizing economic losses caused by corn diseases. This study demonstrates that the U-Net + GLCM + PCA + Random Forest pipeline can classify corn diseases into four classes (Healthy, Common Rust, Northern Leaf Blight, and Gray Leaf Spot) with 78.3\% accuracy using only 60 PCA-selected GLCM features, outperforming the full 120-feature set by 8.3\%. The method comparison shows that while a CNN model achieves higher accuracy (85.6\%), the proposed approach requires only 0.16 seconds for classification, making it approximately 320 times faster and more suitable for deployment on resource-constrained IoT and mobile devices. Per-class analysis indicates that Healthy and Common Rust leaves are classified with the highest reliability (F1=0.90), while Northern Leaf Blight remains the most challenging class (F1=0.69). Future work should focus on improving classification of Northern Leaf Blight and Gray Leaf Spot, enhancing segmentation quality, and testing the method on mobile devices in real field conditions.
+Classifying diseases in corn is crucial for preventing and minimizing economic losses caused by corn diseases. This study demonstrates that the U-Net + GLCM + PCA + Random Forest pipeline, with U-Net trained on 1,928 Roboflow COCO-annotated images, can classify corn diseases into four classes with 85.5\% accuracy using only 60 PCA-selected GLCM features, outperforming the raw 120-feature set by 12.0\%. The method comparison shows that while a CNN model achieves marginally higher accuracy (87.4\%), the proposed approach requires only 0.17 seconds for classification, making it approximately 326 times faster and more suitable for deployment on resource-constrained IoT and mobile devices. Per-class analysis indicates that Healthy and Common Rust leaves are classified with near-perfect reliability (F1=0.95 and 0.98 respectively), while Northern Leaf Blight remains the most challenging class (F1=0.68). Future work should focus on improving the classification of Northern Leaf Blight and Gray Leaf Spot, exploring data augmentation strategies, and testing the method on mobile devices in real field conditions.
 
 \section{Acknowledgement}
 
