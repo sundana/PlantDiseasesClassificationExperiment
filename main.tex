@@ -14,6 +14,7 @@
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
 \usepackage{gensymb}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
@@ -142,8 +143,37 @@ We obtained the dataset for corn diseases from the Plant Village Dataset.  The d
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.4\textwidth]{images/gambar_sample.jpg}
-    \caption{a) Common Rust, b) Northern Leaf Blight, c) Healthy Leaf, d) Grey Leaf Spot}
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/samples/sample_healthy.jpg}
+        \caption{Healthy}
+        \label{fig:sample-healthy}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/samples/sample_common_rust.jpg}
+        \caption{Common Rust}
+        \label{fig:sample-commonrust}
+    \end{subfigure}
+
+    \vspace{4pt}
+
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/samples/sample_nlb.jpg}
+        \caption{Northern Leaf Blight}
+        \label{fig:sample-nlb}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/samples/sample_gray_leaf_spot.jpg}
+        \caption{Gray Leaf Spot}
+        \label{fig:sample-gls}
+    \end{subfigure}
+
+    \caption{Sample images from the PlantVillage corn disease dataset representing the four classes used in this study.}
     \label{fig:dataset sample}
 \end{figure}
 
