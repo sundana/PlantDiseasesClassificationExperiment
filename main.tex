@@ -13,6 +13,7 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
 \usepackage{gensymb}
+\usepackage{booktabs}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{enumitem}
@@ -371,18 +372,18 @@ The results show that the computing time remains consistently low across all PCA
 
 \begin{table}[ht]
     \centering
-    \caption{The prediction results are based on the number of PCA dimensionality of GLCM features in the test data.}
-    \begin{tabularx}{\linewidth}{|c|c|c|c|c|}
-        \hline
-        \textbf{Feature Dimensionality} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
-        \hline
-        120 (No Feature Selection) & 0.73 & 0.73 & 0.73 & 0.73 \\
-        90 & 0.86 & 0.85 & 0.86 & 0.85 \\
-        60 & 0.86 & 0.86 & 0.86 & 0.85 \\
-        30 & 0.84 & 0.85 & 0.84 & 0.84 \\
-        10 & 0.81 & 0.80 & 0.81 & 0.80 \\
-        \hline
-    \end{tabularx}
+    \caption{Prediction results across varying PCA dimensionality of GLCM features.}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{PCA Dim.} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
+        \midrule
+        120 (No Selection) & 0.73 & 0.73 & 0.73 & 0.73 \\
+        90                 & 0.86 & 0.85 & 0.86 & 0.85 \\
+        \textbf{60}        & \textbf{0.86} & \textbf{0.86} & \textbf{0.86} & \textbf{0.85} \\
+        30                 & 0.84 & 0.85 & 0.84 & 0.84 \\
+        10                 & 0.81 & 0.80 & 0.81 & 0.80 \\
+        \bottomrule
+    \end{tabular}
     \label{table:1}
 \end{table}
 
@@ -412,34 +413,34 @@ The results show that the computing time remains consistently low across all PCA
 
 \begin{table}[ht]
     \centering
-    \caption{Per-class performance metrics for Random Forest with 60 PCA-selected GLCM features.}
-    \begin{tabularx}{\linewidth}{|l|c|c|c|c|}
-        \hline
+    \caption{Per-class performance of Random Forest with 60 PCA-selected GLCM features.}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
         \textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{Support} \\
-        \hline
-        Healthy & 0.91 & 1.00 & 0.95 & 21 \\
-        Common Rust & 0.95 & 1.00 & 0.98 & 20 \\
-        Northern Leaf Blight & 0.76 & 0.62 & 0.68 & 21 \\
-        Gray Leaf Spot & 0.73 & 0.76 & 0.74 & 21 \\
-        \hline
+        \midrule
+        Healthy               & 0.91 & 1.00 & 0.95 & 21 \\
+        Common Rust           & 0.95 & 1.00 & 0.98 & 20 \\
+        Northern Leaf Blight  & 0.76 & 0.62 & 0.68 & 21 \\
+        Gray Leaf Spot        & 0.73 & 0.76 & 0.74 & 21 \\
+        \midrule
         \textbf{Weighted Avg} & \textbf{0.84} & \textbf{0.84} & \textbf{0.84} & \textbf{83} \\
-        \hline
-    \end{tabularx}
+        \bottomrule
+    \end{tabular}
     \label{table:2}
 \end{table}
 
 \begin{table}[ht]
     \centering
     \caption{Method comparison on the corn disease classification task.}
-    \begin{tabularx}{\linewidth}{|l|c|c|c|}
-        \hline
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
         \textbf{Method} & \textbf{Accuracy} & \textbf{F1-score} & \textbf{Time (s)} \\
-        \hline
+        \midrule
         Random Forest + GLCM + PCA (60 dim) & 0.86 & 0.85 & 0.17 \\
-        SVM + GLCM + PCA (120 dim) & 0.80 & 0.79 & 0.00 \\
-        CNN (Raw Images) & 0.87 & -- & 55.4 \\
-        \hline
-    \end{tabularx}
+        SVM + GLCM + PCA (120 dim)          & 0.80 & 0.79 & 0.00 \\
+        CNN (Raw Images)                    & 0.87 & --   & 55.4 \\
+        \bottomrule
+    \end{tabular}
     \label{table:3}
 \end{table}
 
