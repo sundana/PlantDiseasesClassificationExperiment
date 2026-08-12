@@ -144,7 +144,7 @@ The classification pipeline was executed on a system equipped with an NVIDIA GeF
 
 \subsection{Dataset}
 
-We obtained the dataset for corn diseases from the Plant Village Dataset.  The dataset used in this study is images of diseases on corn leaves. The dataset has four classes, each with 7317 images: Healthy, Common Rust, Northern Leaf Blight, and Gray Leaf Spot (see Fig. \ref{fig:dataset sample}). The dataset was divided into 80\% for training data and 20\% for test data.
+We obtained the dataset for corn diseases from the Plant Village Dataset. The dataset comprises four disease classes: Healthy (1,162 images), Common Rust (1,192 images), Northern Leaf Blight (985 images), and Gray Leaf Spot (513 images), totaling 3,852 images (see Fig. \ref{fig:dataset sample}). After class balancing via downsampling to the minority class size (513 per class), the dataset was divided into 80\% for training data and 20\% for test data.
 
 \begin{figure}[t]
     \centering
@@ -213,11 +213,11 @@ The steps in GLCM calculation are as follows \cite{Utaminingrum2023}:
 
 \begin{enumerate}
     \item Determine the values of distance ($d$) and angle ($\theta$).
-    \item Perform iteration by providing a pair of values of two adjacent pixels based on $d$ value. Fig. 1 shows how the values of the GLCM matrix are obtained.
+    \item Perform iteration by providing a pair of values of two adjacent pixels based on $d$ value.
     \item Sum the GLCM matrix by transposing the GLCM matrix to obtain a symmetric GLCM matrix.
 \end{enumerate}
 
-GLCM extracts seven features: Contrast, Dissimilarity, Homogeneity, Energy, ASM, Entropy, and Correlation. Contrast is the difference between colors that makes an object distinguishable. Equation (\ref{eq:2}) is the formula for contrast. After the contrast feature, the next feature extracted is dissimilarity. Dissimilarity measures the dissimilarity of the image texture, as in (\ref{eq:3}). Next, extract the homogeneity feature. Homogeneity measures how closely the distribution of elements in the GLCM approximates its diagonal, as in (\ref{eq:4}). The following extracted features are Energy and Angular Second Moment (ASM). Energy measures the uniformity of an image's texture, while ASM is the root of Energy, as (\ref{eq:5}) and (\ref{eq:6}), respectively. Lastly, examine the correlation features from the GLCM matrix, as shown in (\ref{eq:7}).
+GLCM extracts six features: Contrast, Dissimilarity, Homogeneity, Energy, ASM, and Correlation. Contrast is the difference between colors that makes an object distinguishable. Equation (\ref{eq:2}) is the formula for contrast. After the contrast feature, the next feature extracted is dissimilarity. Dissimilarity measures the dissimilarity of the image texture, as in (\ref{eq:3}). Next, extract the homogeneity feature. Homogeneity measures how closely the distribution of elements in the GLCM approximates its diagonal, as in (\ref{eq:4}). The following extracted features are Energy and Angular Second Moment (ASM). Energy measures the uniformity of an image's texture, while ASM is the root of Energy, as (\ref{eq:5}) and (\ref{eq:6}), respectively. Lastly, examine the correlation features from the GLCM matrix, as shown in (\ref{eq:7}).
 
 This formulation will combine texture features based on the distance and angle used. This research will use 1,2,3,4,5 distances and 0\degree, 45\degree, 90\degree, and 135\degree, respectively. This combination of distances and angles will produce 120 features.
 
