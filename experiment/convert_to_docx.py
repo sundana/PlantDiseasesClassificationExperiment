@@ -4,6 +4,7 @@ import subprocess, os
 BASE_DIR = "/home/sundana/projects/Corn_Diseases_for_SIET_Conference_IEEE"
 TEX_FILE = os.path.join(BASE_DIR, "main-submit.tex")
 OUT_DOCX = os.path.join(BASE_DIR, "main-submit.docx")
+TMP_DOCX = "/tmp/main-submit.docx"
 TEX_CONV = os.path.join(BASE_DIR, "main-submit-conv.tex")
 
 PANDOC = "/mnt/c/Users/USER/anaconda3/Scripts/pandoc.exe"
@@ -47,19 +48,23 @@ with open(TEX_CONV, "w", encoding="utf-8") as f:
 
 # Run pandoc
 os.chdir(BASE_DIR)
+CSL_FILE = os.path.join(BASE_DIR, "ieee.csl")
 cmd = [
     PANDOC, TEX_CONV,
-    "-o", OUT_DOCX,
+    "-o", TMP_DOCX,
     "--from", "latex",
     "--to", "docx",
     "--citeproc",
     "--bibliography", BIB_FILE,
+    "--csl", CSL_FILE,
     "--resource-path", f"{BASE_DIR};{BASE_DIR}/images;{BASE_DIR}/images/samples;{BASE_DIR}/images/seg_results;{BASE_DIR}/images/exported;.",
 ]
 print(f"Running pandoc...")
 result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
 
 if result.returncode == 0:
+    import shutil
+    shutil.move(TMP_DOCX, OUT_DOCX)
     size_kb = os.path.getsize(OUT_DOCX) / 1024
     print(f"SUCCESS: {OUT_DOCX} ({size_kb:.0f} KB)")
 else:
