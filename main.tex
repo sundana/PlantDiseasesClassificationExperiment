@@ -316,13 +316,42 @@ Recall=(\frac{TP}{TP+FN})
 
 This study aims to analyze the results of corn disease classification without feature selection and the results of selection on GLCM features using PCA. Then, it will determine the best combination based on accuracy, precision, recall, and computing time.
 
-Fig. \ref{fig:segmentation-result} shows the difference in results from segmentation methods with U-Net on one sample. The separation between the leaf surface and the background is more visible in U-Net compared to the results of other segmentation methods. This segmentation result can facilitate feature extraction by GLCM by only analyzing the leaf surface.
+Fig. \ref{fig:segmentation-result} shows the difference in results from three segmentation methods applied to the same corn leaf sample. The U-Net-based segmentation (Fig.~\ref{fig:segmentation-result}d) achieves the most precise separation between the leaf surface and the background compared to K-Means (Fig.~\ref{fig:segmentation-result}b) and Otsu thresholding (Fig.~\ref{fig:segmentation-result}c). This accurate segmentation facilitates subsequent GLCM feature extraction by confining the analysis to the leaf surface only.
 
 \begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{images/segmentation_result.png}
-  \caption{Comparison of segmentation results of K-Means, thresholding, and U-Net methods. U-Net can undoubtedly separate leaves from their background.}
-  \label{fig:segmentation-result}
+    \centering
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/seg_results/a_original.jpg}
+        \caption{Original leaf}
+        \label{fig:seg-result-original}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/seg_results/c_kmeans.jpg}
+        \caption{K-Means clustering}
+        \label{fig:seg-result-kmeans}
+    \end{subfigure}
+
+    \vspace{4pt}
+
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/seg_results/b_otsu.jpg}
+        \caption{Otsu thresholding}
+        \label{fig:seg-result-otsu}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.465\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/seg_results/d_unet.jpg}
+        \caption{U-Net segmentation}
+        \label{fig:seg-result-unet}
+    \end{subfigure}
+
+    \caption{Comparison of segmentation methods on a corn leaf sample. (a) Original input image; (b) K-Means clustering ($k=3$) with green-channel selection; (c) Otsu thresholding combined with HSV green masking; (d) U-Net deep learning segmentation, which provides the most accurate leaf-background separation.}
+    \label{fig:segmentation-result}
 \end{figure}
 
 
