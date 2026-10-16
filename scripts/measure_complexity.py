@@ -22,7 +22,8 @@ def calculate_flops(models: list[nn.Module]) -> pd.DataFrame:
         "models": [],
         "flops": [],
         "params": [],
-        "memory_size_mb": []
+        "memory_size_mb": [],
+        "int8_memory_mb": [],
     }
     for model_factory in models:
         model = model_factory(num_classes=29)
@@ -31,11 +32,14 @@ def calculate_flops(models: list[nn.Module]) -> pd.DataFrame:
         except Exception:
             flop, params = None, sum(p.numel() for p in model.parameters())
 
-        # Calculate memory size (MB) based on parameters (float32 = 4 bytes)
+        # Calculate memory size (MB) based on parameters
+        # FP32 weights: 4 bytes per parameter; INT8 quantized weights: 1 byte per parameter
         if params is not None:
             memory_size_mb = (params * 4) / (1024 * 1024)
+            int8_memory_mb = (params * 1) / (1024 * 1024)
         else:
             memory_size_mb = None
+            int8_memory_mb = None
 
         # Determine a descriptive name
         name = model.__class__.__name__
@@ -53,6 +57,7 @@ def calculate_flops(models: list[nn.Module]) -> pd.DataFrame:
         model_complexity["flops"].append(flop)
         model_complexity["params"].append(params)
         model_complexity["memory_size_mb"].append(memory_size_mb)
+        model_complexity["int8_memory_mb"].append(int8_memory_mb)
 
     df = pd.DataFrame(model_complexity)
     return df

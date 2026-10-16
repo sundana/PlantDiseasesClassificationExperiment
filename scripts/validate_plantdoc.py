@@ -335,8 +335,7 @@ def main():
             "checkpoint": f"{weight_stem}.pth",
             "samples": len(dataset),
             "accuracy": metrics.get("overall", {}).get("Accuracy", 0.0),
-            "macro_f1": float(np.mean([v["F1 Score"] for v in metrics["per_class"].values()]))
-            if metrics.get("per_class") else 0.0,
+            "macro_f1": metrics.get("overall", {}).get("F1 Score", 0.0)
         }
 
         print(f"Accuracy: {all_results[model_name]['accuracy'] * 100:.2f}% "

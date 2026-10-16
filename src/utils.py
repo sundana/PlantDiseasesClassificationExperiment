@@ -1395,12 +1395,16 @@ def evaluate_model(
         final_loss,
     )
 
-    # Save detailed classification report
+    # Save detailed classification report. Restrict to the evaluated classes
+    # (those present as true labels) so that the report's "macro avg" row uses
+    # the same convention as the manuscript (unweighted mean over the K
+    # evaluated classes) instead of including zero-support classes.
+    evaluated = np.unique(np.asarray(all_labels))
     report = classification_report(
         all_labels,
         all_preds,
-        target_names=class_names,
-        labels=range(len(class_names)),
+        target_names=[class_names[i] for i in evaluated],
+        labels=evaluated,
         output_dict=True,
         zero_division=0,
     )
@@ -1428,16 +1432,23 @@ def calculate_comprehensive_metrics(labels, preds, probs, class_names):
     )
     from sklearn.preprocessing import label_binarize
 
-    # Overall metrics
+    # Overall metrics. Precision, recall and F1 are macro-averaged over the
+    # evaluated classes, i.e. the classes that occur as true labels. Classes
+    # absent from the evaluation (zero support) are excluded, so the unweighted
+    # mean matches the manuscript convention (macro average over the K
+    # evaluated classes). A support-weighted average would instead be dominated
+    # by the large classes.
     accuracy = accuracy_score(labels, preds)
-    precision = precision_score(labels, preds, average="weighted", zero_division=0)
-    recall = recall_score(labels, preds, average="weighted", zero_division=0)
-    f1 = f1_score(labels, preds, average="weighted", zero_division=0)
+    evaluated = np.unique(np.asarray(labels))
 
     # Per-class metrics
     precision_per_class = precision_score(labels, preds, average=None, labels=range(len(class_names)), zero_division=0)
     recall_per_class = recall_score(labels, preds, average=None, labels=range(len(class_names)), zero_division=0)
     f1_per_class = f1_score(labels, preds, average=None, labels=range(len(class_names)), zero_division=0)
+
+    precision = float(np.mean(precision_per_class[evaluated]))
+    recall = float(np.mean(recall_per_class[evaluated]))
+    f1 = float(np.mean(f1_per_class[evaluated]))
 
     # Multi-class ROC AUC
     try:
