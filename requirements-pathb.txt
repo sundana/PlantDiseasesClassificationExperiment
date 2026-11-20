@@ -1,0 +1,16 @@
+# Path B dependencies (torch/torchvision are installed separately with the CUDA index)
+numpy
+scikit-learn
+scipy
+matplotlib
+seaborn
+pandas
+tqdm
+psutil
+ptflops
+tensorboard
+openpyxl
+python-dotenv
+requests
+datasets
+pyarrow

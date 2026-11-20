@@ -65,3 +65,10 @@ MANIFEST
 *.spl
 
 TODO.md
+
+# Virtual environment
+.venv/
+
+# Generated figures (source scripts are tracked)
+figures/*.pdf
+figures/*.png

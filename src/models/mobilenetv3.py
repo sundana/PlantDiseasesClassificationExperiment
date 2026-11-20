@@ -100,7 +100,7 @@ class MobileNetV3_Large(nn.Module):
             Block(3, 80, 480, 112, nn.Hardswish(), attn(112), 1),
             Block(3, 112, 672, 112, nn.Hardswish(), attn(112), 1),
             Block(5, 112, 672, 160, nn.Hardswish(), attn(160), 1),
-            Block(5, 160, 672, 160, nn.Hardswish(), attn(160), 2),
+            Block(5, 160, 960, 160, nn.Hardswish(), attn(160), 2),
             Block(5, 160, 960, 160, nn.Hardswish(), attn(160), 1),
         )
 

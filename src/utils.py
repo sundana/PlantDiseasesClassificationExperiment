@@ -20,17 +20,25 @@ from src.config import TRAINING_LOG_DIR, CHECKPOINT_DIR
 
 
 def _get_model_display_name(model):
-    """Build a descriptive checkpoint filename from model attributes."""
+    """Build a descriptive checkpoint filename from model attributes.
+
+    An optional ``model.run_tag`` is appended so that repeated runs of the same
+    architecture (seeds, scratch/pretrained, probes) do not overwrite each
+    other's checkpoints.
+    """
     cls_name = model.__class__.__name__
     att = getattr(model, 'attention_type', None)
     red = getattr(model, 'reduction_ratio', None)
     if att == 'none':
-        return f"{cls_name}_NoAttn"
+        base = f"{cls_name}_NoAttn"
     elif att == 'cbam' and red:
-        return f"{cls_name}_CBAM_r{red}"
+        base = f"{cls_name}_CBAM_r{red}"
     elif att == 'se' and red:
-        return f"{cls_name}_SE_r{red}"
-    return cls_name
+        base = f"{cls_name}_SE_r{red}"
+    else:
+        base = cls_name
+    tag = getattr(model, 'run_tag', None)
+    return f"{base}__{tag}" if tag else base
 
 
 # Define EarlyStopping class with checkpoint saving

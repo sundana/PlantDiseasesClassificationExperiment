@@ -35,8 +35,38 @@ def create_dataloader(
     num_workers: Optional[int] = NUM_WORKERS,
     seed: int = DEFAULT_SEED,
     stratified: bool = False,
+    exclude_classes: Optional[List[str]] = None,
 ) -> Tuple[DataLoader, DataLoader, DataLoader, List[str]]:
     base_dataset = datasets.ImageFolder(root=data_path, transform=None)
+    if exclude_classes:
+        # Filter before the split so that every condition uses the same
+        # stratified sampling logic on the same remaining images.
+        exclude = set(exclude_classes)
+        unknown = exclude - set(base_dataset.classes)
+        if unknown:
+            print(f"[data_setup] exclude_classes not present, ignoring: {sorted(unknown)}")
+        old_classes = list(base_dataset.classes)
+        keep_classes = [c for c in old_classes if c not in exclude]
+        remap = {old_classes.index(c): new for new, c in enumerate(keep_classes)}
+        kept_samples = [
+            (path, remap[target])
+            for path, target in base_dataset.samples
+            if target in remap
+        ]
+        if not kept_samples:
+            raise ValueError("exclude_classes removed every sample")
+        base_dataset.classes = keep_classes
+        base_dataset.class_to_idx = {c: i for i, c in enumerate(keep_classes)}
+        base_dataset.samples = kept_samples
+        base_dataset.targets = [target for _, target in kept_samples]
+        try:  # torchvision keeps ``imgs`` as an alias in some versions
+            base_dataset.imgs = base_dataset.samples
+        except Exception:
+            pass
+        print(
+            f"[data_setup] excluded {sorted(exclude & set(old_classes))}; "
+            f"{len(keep_classes)} classes, {len(kept_samples)} images remain"
+        )
     class_names = base_dataset.classes
     targets = np.array([s[1] for s in base_dataset.samples])
     n = len(base_dataset)
