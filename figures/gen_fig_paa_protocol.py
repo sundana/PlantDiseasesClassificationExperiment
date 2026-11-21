@@ -86,7 +86,7 @@ probes = [
     ("Frame probe\nouter 20% border\n→ FRI", "#DCEEF7"),
     ("Background ablation\n29 vs 28 classes\n→ BRI", "#DDF2EA"),
     ("Leaf-crop test\nfull image vs crop\n→ BRI", "#FCEFD8"),
-    ("Attention test\nSE vs CBAM\nequal $r$ → TOST", "#F5E4EF"),
+    ("Attention test\nSE vs CBAM\nequal r → TOST", "#F5E4EF"),
 ]
 for x, (label, color) in zip(probe_x, probes):
     box(ax, x, probe_y, probe_w, probe_h, label, facecolor=color, fontsize=6.6)
