@@ -134,6 +134,8 @@ A single run can also be launched directly:
 | `scripts/aggregate_seeds.py` | Mean ± SD across seeds; paired McNemar/bootstrap/TOST comparisons |
 | `scripts/run_path_b.sh` | Audit matrix runner |
 | `scripts/run_finetune_matrix.sh` | Fine-tune matrix runner |
+| `figures/gen_fig_paa.py` | PAA test-split and adaptation figures |
+| `figures/gen_fig_paa_protocol.py` | Shortcut Reliance Audit protocol overview (Figure 1) |
 | `src/audit.py` | Metrics, border mask, VOC parsing, cropping, statistics |
 | `src/models/factory.py` | Model factory, ImageNet backbone loading, BN settings |
 | `tests/` | CPU smoke tests and optional torch integration tests |
