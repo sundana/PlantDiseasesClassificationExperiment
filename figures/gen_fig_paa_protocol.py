@@ -4,9 +4,9 @@ A single-column vertical flow:
 
     data -> models -> four diagnostic probes -> positive control -> report
 
-The four probes and the positive control are enclosed in a dashed boundary
-labelled "Shortcut Reliance Audit".  Output: figures/fig_paa_protocol.pdf/.png
-and a copy in paper/.
+The four probes are labelled "Diagnose"; the fine-tune is labelled
+"Remediate".  Both sit inside a dashed boundary labelled "Shortcut Reliance
+Audit".  Output: figures/fig_paa_protocol.pdf/.png and a copy in paper/.
 """
 
 from __future__ import annotations
@@ -65,10 +65,10 @@ ax.axis("off")
 # ---------------------------------------------------------------------------
 box(ax, 1.1, 9.0, 3.6, 1.0,
     "PlantVillage (laboratory)\n29 classes, 41,879 images",
-    facecolor="#EAF2F8", fontsize=7.0)
+    facecolor="#E6F0F7", fontsize=7.0)
 box(ax, 5.3, 9.0, 3.6, 1.0,
     "PlantDoc (field)\n20 mapped classes, 1,614 / 169",
-    facecolor="#FDF2E9", fontsize=7.0)
+    facecolor="#FBEFE3", fontsize=7.0)
 
 # ---------------------------------------------------------------------------
 # Row 2: models
@@ -80,13 +80,13 @@ box(ax, 1.1, 7.35, 7.8, 0.95,
 # ---------------------------------------------------------------------------
 # Row 3: four diagnostic probes
 # ---------------------------------------------------------------------------
-probe_y, probe_h, probe_w = 5.15, 1.25, 2.05
+probe_y, probe_h, probe_w = 5.05, 1.20, 2.05
 probe_x = [0.35, 2.65, 4.95, 7.25]
 probes = [
-    ("Frame probe\nouter 20% border\n→ FRI", "#E8F4F8"),
-    ("Background ablation\n29 vs 28 classes\n→ BRI", "#E8F6F1"),
-    ("Leaf-crop test\nfull image vs crop\n→ BRI", "#FFF4E5"),
-    ("Attention test\nSE vs CBAM\nequal $r$ → TOST", "#F5EEF8"),
+    ("Frame probe\nouter 20% border\n→ FRI", "#DCEEF7"),
+    ("Background ablation\n29 vs 28 classes\n→ BRI", "#DDF2EA"),
+    ("Leaf-crop test\nfull image vs crop\n→ BRI", "#FCEFD8"),
+    ("Attention test\nSE vs CBAM\nequal $r$ → TOST", "#F5E4EF"),
 ]
 for x, (label, color) in zip(probe_x, probes):
     box(ax, x, probe_y, probe_w, probe_h, label, facecolor=color, fontsize=6.6)
@@ -96,7 +96,7 @@ for x, (label, color) in zip(probe_x, probes):
 # ---------------------------------------------------------------------------
 box(ax, 1.1, 3.25, 7.8, 0.95,
     "Positive control: fine-tune on PlantDoc train\n→ evaluate on the 169-image test split → adaptation gain",
-    facecolor="#EAF7EE", fontsize=7.0, bold=True)
+    facecolor="#E3F2E7", fontsize=7.0, bold=True)
 
 # ---------------------------------------------------------------------------
 # Row 5: report
@@ -126,6 +126,16 @@ arrow(ax, 5.0, 4.95, 5.0, 4.20)
 
 # positive control -> report
 arrow(ax, 5.0, 3.25, 5.0, 2.15)
+
+# ---------------------------------------------------------------------------
+# Diagnose / remediate labels
+# ---------------------------------------------------------------------------
+ax.text(0.15, probe_y + probe_h / 2, "DIAGNOSE", fontsize=6.2,
+        fontweight="bold", color="#6B7280", ha="center", va="center",
+        rotation=90, zorder=4)
+ax.text(0.15, 3.25 + 0.95 / 2, "REMEDIATE", fontsize=6.2,
+        fontweight="bold", color="#6B7280", ha="center", va="center",
+        rotation=90, zorder=4)
 
 # ---------------------------------------------------------------------------
 # Dashed boundary around the audit

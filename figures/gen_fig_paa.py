@@ -196,23 +196,30 @@ def fig_adaptation(tables):
     # mean line
     mean_zero = np.mean([run["zero"] for run in runs])
     mean_fine = np.mean([run["fine"] for run in runs])
+    mean_gain = mean_fine - mean_zero
     ax.plot([0, 1], [mean_zero, mean_fine], color="black", lw=2.0, ls="--",
             marker="D", ms=3.5, label="mean")
     ax.set_xlim(-0.12, 1.12)
-    ax.set_ylim(0, 70)
+    ax.set_ylim(0, 72)
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["zero-shot", "fine-tuned"])
     ax.set_ylabel("PlantDoc test accuracy (%)")
     ax.grid(axis="x", visible=False)
-    ax.text(0.02, mean_zero + 2.0, f"{mean_zero:.1f}", fontsize=7.0)
-    ax.text(0.86, mean_fine + 2.0, f"{mean_fine:.1f}", fontsize=7.0)
+    ax.text(0.02, mean_zero + 4.5, f"{mean_zero:.1f}", fontsize=7.0,
+            ha="left", va="bottom")
+    ax.text(0.86, mean_fine + 3.0, f"{mean_fine:.1f}", fontsize=7.0,
+            ha="left", va="bottom")
+    ax.text(0.55, (mean_zero + mean_fine) / 2 + 5.0,
+            f"mean +{mean_gain:.1f} pp", fontsize=7.0, color="black",
+            ha="left", va="center",
+            bbox=dict(facecolor="white", edgecolor="none", pad=1.0))
     handles = [
         plt.Line2D([], [], color=st.SCRATCH, label="Large SE"),
         plt.Line2D([], [], color=st.PRETRAINED, label="Large CBAM"),
         plt.Line2D([], [], color=st.NOBG, label="Large none"),
         plt.Line2D([], [], color="black", ls="--", label="mean"),
     ]
-    ax.legend(handles=handles, frameon=False, loc="lower right", ncol=2,
+    ax.legend(handles=handles, frameon=False, loc="upper left", ncol=2,
               fontsize=6.5, handlelength=1.4, columnspacing=0.8)
 
     fig.savefig(OUT / "fig_paa_adaptation.pdf")
